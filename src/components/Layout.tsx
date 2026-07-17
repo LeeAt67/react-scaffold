@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Home, Info, Puzzle, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Home, Puzzle, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createLogger } from '@/utils/logger'
 import { GlobalStore } from '@/controller'
@@ -13,7 +13,6 @@ const globalStore = new GlobalStore()
 const navLinks = [
   { to: '/', label: 'Claw', icon: Home },
   { to: '/c', label: 'KUI', icon: Puzzle },
-  { to: '/about', label: '关于', icon: Info },
 ]
 
 /** 细粒度 className 定制 */

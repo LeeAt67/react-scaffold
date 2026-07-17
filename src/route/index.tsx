@@ -10,7 +10,6 @@ const logger = createLogger('route')
 // 页面组件
 import ClawPage from '@/pages/Claw'
 import HomePage from '@/pages/Home'
-import AboutPage from '@/pages/About'
 import ChatInputDemoPage from '@/pages/ChatInputDemo'
 import Layout from '@/components/Layout'
 
@@ -21,7 +20,6 @@ const routes: RouteObject[] = [
     children: [
       { index: true, element: <ClawPage /> },
       { path: 'c', element: <HomePage /> },
-      { path: 'about', element: <AboutPage /> },
       { path: 'kui', element: <ChatInputDemoPage /> },
     ],
   },
