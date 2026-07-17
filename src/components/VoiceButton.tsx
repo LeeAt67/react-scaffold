@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Mic, MicOff } from 'lucide-react'
-import { IconButton } from '@/components/kui/atoms/IconButton'
+import { IconButton } from '@/components/IconButton'
 
 /**
  * VoiceButton — 语音录制按钮

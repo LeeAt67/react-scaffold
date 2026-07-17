@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
-import { PromptTextarea } from '@/components/kui/molecules/PromptTextarea'
-import { InputToolbar } from '@/components/kui/organisms/InputToolbar'
+import { PromptTextarea } from '@/components/PromptTextarea'
+import { InputToolbar } from '@/components/InputToolbar'
 
 /**
  * ChatInput — Claude 风格输入框（完整组件）
@@ -73,7 +73,37 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }, [value, loading, onSend])
 
   const canSend = value.trim().length > 0 && !disabled
-  const charCount = value.length
+
+  /** 附件上传 — 触发文件选择 */
+  const handleAttach = () => {
+    // TODO: 接入实际文件上传逻辑（创建隐藏 input[type=file]，支持图片/文档）
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*,.pdf,.doc,.docx'
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        console.log('[ChatInput] 附件已选择:', file.name)
+        // TODO: 上传文件并回调 onAttach
+      }
+    }
+    input.click()
+    onAttach()
+  }
+
+  /** 语音切换 */
+  const handleVoiceToggle = () => {
+    // TODO: 接入语音 SDK（Web Speech API / LiveKit），启动/停止录音
+    console.log('[ChatInput] 语音切换，当前状态:', recording)
+    onVoiceToggle()
+  }
+
+  /** 设置 */
+  const handleSettings = () => {
+    // TODO: 打开设置面板（模型参数、对话选项等）
+    console.log('[ChatInput] 打开设置')
+    onSettings()
+  }
 
   return (
     <div
@@ -105,16 +135,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
         canSend={canSend}
         loading={loading}
         onSend={onSend}
-        onAttach={onAttach}
-        onSettings={onSettings}
+        onAttach={handleAttach}
+        onSettings={handleSettings}
       />
-
-      {/* 字符计数（右下角） */}
-      {value.length > 0 && (
-        <div className="absolute bottom-1 right-14 text-[10px] text-muted-foreground/50 pointer-events-none">
-          {charCount}/{maxLength}
-        </div>
-      )}
     </div>
   )
 }

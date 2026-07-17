@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { ChatInput } from '@/components/kui'
+import { ChatInput } from '@/components/ChatInput'
 import { createLogger } from '@/utils/logger'
 
 const logger = createLogger('chat:page')

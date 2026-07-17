@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { AudioLines, Plus } from 'lucide-react'
-import { IconButton } from '@/components/kui/atoms/IconButton'
-import { SendButton } from '@/components/kui/molecules/SendButton'
-import { VoiceButton } from '@/components/kui/molecules/VoiceButton'
-import { AttachButton } from '@/components/kui/molecules/AttachButton'
-import { ModelSelector } from '@/components/kui/molecules/ModelSelector'
+import { IconButton } from '@/components/IconButton'
+import { SendButton } from '@/components/SendButton'
+import { VoiceButton } from '@/components/VoiceButton'
+import { AttachButton } from '@/components/AttachButton'
+import { ModelSelector } from '@/components/ModelSelector'
 
 /**
  * InputToolbar — 底部工具栏（有机体）
@@ -42,7 +42,7 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
   onSettings,
 }) => {
   return (
-    <div className="flex items-center justify-between border-t px-2 py-1">
+    <div className="flex items-center justify-between px-2 py-1">
       {/* 左侧：Plus 附件按钮 + 模型选择 */}
       <div className="flex items-center gap-1">
         <IconButton label="添加附件" onClick={onAttach}>

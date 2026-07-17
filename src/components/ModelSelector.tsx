@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChevronDown } from 'lucide-react'
-import { Button } from '@/components/kui/atoms/Button'
+import { Button } from '@/components/Button'
 
 /**
  * ModelSelector — 模型选择器

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Paperclip } from 'lucide-react'
-import { IconButton } from '@/components/kui/atoms/IconButton'
+import { IconButton } from '@/components/IconButton'
 
 /**
  * AttachButton — 附件上传按钮

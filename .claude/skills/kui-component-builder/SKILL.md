@@ -19,14 +19,13 @@ argument-hint: 'Describe the complex component to build (e.g. "a Claude-style ch
 
 ## 项目上下文
 
-- KUI 组件库路径：`src/components/kui/`
-- 层级目录：`atoms/` → `molecules/` → `organisms/` → `ChatInput.tsx` (完整组件)
-- 导出索引：`src/components/kui/index.ts`
-- Demo 页面：`src/pages/Components/components/`（预览区）
+- 组件路径：`src/components/`（平坦目录，与 MiMo Chat 对齐）
+- 导出索引：`src/components/kui/index.ts`（向后兼容 re-export）
+- Demo 页面：`src/pages/ComponentPreview/`
 - Demo 路由：`#/components`
 - 路由注册：`src/route/index.tsx`
-- 基础原子 Button 位于 `src/components/kui/atoms/Button.tsx`，提供 6 种 variant + 5 种 size
-- IconButton 位于 `src/components/kui/atoms/IconButton.tsx`，封装 Button 为图标按钮
+- 基础原子 Button 位于 `src/components/Button.tsx`，提供 6 种 variant + 5 种 size
+- IconButton 位于 `src/components/IconButton.tsx`，封装 Button 为图标按钮
 - 项目使用 Tailwind CSS + shadcn/ui + lucide-react 图标
 
 ## Procedure
@@ -58,10 +57,8 @@ argument-hint: 'Describe the complex component to build (e.g. "a Claude-style ch
 
 | 层级 | 目录 | 命名 |
 |------|------|------|
-| 原子 (atom) | `kui/atoms/` | 如 `Switch.tsx` |
-| 分子 (molecule) | `kui/molecules/` | 如 `ToggleButton.tsx` |
-| 有机体 (organism) | `kui/organisms/` | 如 `FormToolbar.tsx` |
-| 完整组件 | `kui/` | 如 `SearchForm.tsx` |
+| 原子 / 分子 / 有机体 | `src/components/` | 如 `Switch.tsx`、`ToggleButton.tsx`、`FormToolbar.tsx` |
+| 完整组件 | `src/components/` | 如 `SearchForm.tsx` |
 
 **原子组件规则：**
 - 优先复用已有 Button / IconButton，除非确实需要新的基础元素
@@ -70,65 +67,29 @@ argument-hint: 'Describe the complex component to build (e.g. "a Claude-style ch
 
 **分子组件规则：**
 - 必定依赖原子组件，组合而非重新实现
-- 注释注明依赖链：`// 封装自 IconButton → KuiButton`
+- 注释注明依赖链：`// 封装自 IconButton → Button`
 
 **有机体组件规则：**
 - 组装多个分子，提供完整的交互区域
 
 ### Step 3: 注册到 KUI 库
 
-在 `src/components/kui/index.ts` 中按层级添加导出：
+在 `src/components/kui/index.ts` 中按层级添加 re-export：
 
 ```ts
-// ===== 原子组件 =====
-export { NewAtom } from './atoms/NewAtom'
-
-// ===== 分子组件 =====
-export { NewMolecule } from './molecules/NewMolecule'
-
-// ===== 有机体组件 =====
-export { NewOrganism } from './organisms/NewOrganism'
-
-// ===== 完整组件 =====
-export { NewComponent } from './NewComponent'
+// 从 src/components/ 统一 re-export
+export { NewAtom } from '@/components/NewAtom'
+export { NewMolecule } from '@/components/NewMolecule'
+export { NewOrganism } from '@/components/NewOrganism'
+export { NewComponent } from '@/components/NewComponent'
 ```
 
 ### Step 4: 创建 Demo 页面
 
-在 `src/pages/` 创建 `{ComponentName}Demo.tsx`：
+在 `src/pages/ComponentPreview/index.tsx` 追加 Demo 组件：
 
-**布局规范（Ant Design 风格）：**
-```
-┌────────────┬──────────────────────────────┐
-│ 左侧 56px  │ 右侧内容区                    │
-│            │                              │
-│ ▸ 通用     │  # ComponentName             │
-│   Button   │  描述文字                     │
-│   ...      │                              │
-│ ▸ 数据录入 │  [完整组件 Demo]              │
-│   ...      │                              │
-│ ▸ 反馈     │                              │
-│   ...      │                              │
-│ ▸ 组合     │                              │
-│   新组件   │                              │
-└────────────┴──────────────────────────────┘
-```
-
-要求：
-- 左侧：折叠式分类导航（通用 / 数据录入 / 反馈 / 组合）+ 组件描述
-- 右侧：标题 + 组件 Demo
-- 每个子组件有独立 Demo 区块
-- 使用 `useState` 管理 activeKey，点击左侧切换右侧内容
-
-### Step 5: 添加路由
-
-在 `src/routes.tsx` 添加路由，并在 `Layout.tsx` 导航链接中添加入口。
-
-### Step 6: 验证
-
-- 确认 `npm start` 编译无错误
-- 确认页面可通过路由访问
-- 确认左侧导航分组可点击切换
+- 注册到 `entries` 数组（name / desc / status / Demo）
+- status: `incubating`（孵化中）→ 毕业后改为 `graduated`
 
 ## Anti-patterns
 

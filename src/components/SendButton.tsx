@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ArrowUp, Loader2 } from 'lucide-react'
-import { Button } from '@/components/kui/atoms/Button'
+import { Button } from '@/components/Button'
 
 /**
  * SendButton — 发送按钮

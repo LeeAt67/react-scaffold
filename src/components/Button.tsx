@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 /**
- * KUI Button — 组件库最基础原子
+ * KUI Button — 组件库基础原子
  *
  * 在 shadcn/ui Button 基础上扩展：
  * - toolbar: 工具栏灰色按钮（Claude 风格）
