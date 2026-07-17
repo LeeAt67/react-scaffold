@@ -1,27 +1,10 @@
-import { forwardRef } from 'react'
-import { cn } from '@/lib/utils'
-import Chat from '@/components/Chat'
-
-interface HomePageClassNames {
-  root?: string
-}
-
-export interface HomePageProps {
-  className?: string
-  classNames?: HomePageClassNames
-}
+import ChatPage from '@/pages/Chat'
 
 /**
  * 首页（`/`）。
- * 组装核心 Chat 对话组件。
+ * 组装 Chat 对话页面。
  */
-const HomePage = forwardRef<HTMLDivElement, HomePageProps>(
-  ({ className, classNames }, ref) => (
-    <div ref={ref} className={cn('h-full', classNames?.root, className)}>
-      <Chat />
-    </div>
-  ),
-)
+const HomePage = () => <ChatPage />
 
 HomePage.displayName = 'HomePage'
 export default HomePage

@@ -3,24 +3,24 @@ import { cn } from '@/lib/utils'
 import { ChatInput } from '@/components/kui'
 import { createLogger } from '@/utils/logger'
 
-const logger = createLogger('chat:component')
+const logger = createLogger('chat:page')
 
-interface ChatClassNames {
+interface ChatPageClassNames {
   root?: string
   heading?: string
   input?: string
 }
 
-export interface ChatProps {
+export interface ChatPageProps {
   className?: string
-  classNames?: ChatClassNames
+  classNames?: ChatPageClassNames
 }
 
 /**
- * Chat 对话组件 — 问候语 + ChatInput 输入框。
+ * Chat 对话页面 — 问候语 + ChatInput 输入框。
  * Claude 风格首页核心交互。
  */
-const Chat = forwardRef<HTMLDivElement, ChatProps>(
+const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
   ({ className, classNames }, ref) => {
     const [inputValue, setInputValue] = useState('')
 
@@ -44,9 +44,7 @@ const Chat = forwardRef<HTMLDivElement, ChatProps>(
           className,
         )}
       >
-        <div
-          className={cn('mb-8 text-center', classNames?.heading)}
-        >
+        <div className={cn('mb-8 text-center', classNames?.heading)}>
           <h1 className="text-2xl font-semibold tracking-tight">
             {greeting}，今天想做什么？
           </h1>
@@ -65,5 +63,5 @@ const Chat = forwardRef<HTMLDivElement, ChatProps>(
   },
 )
 
-Chat.displayName = 'Chat'
-export default Chat
+ChatPage.displayName = 'ChatPage'
+export default ChatPage
