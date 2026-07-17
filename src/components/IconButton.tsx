@@ -2,9 +2,9 @@ import * as React from 'react'
 import { Button, type ButtonProps } from './Button'
 
 /**
- * IconButton — 图标按钮原子
+ * IconButton — 图标按钮。
  *
- * 封装 KUI Button，默认 variant="toolbar" + size="iconSm"
+ * 封装 Button，默认 variant="toolbar" + size="iconSm"
  */
 export interface IconButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
   /** 按钮变体，默认 toolbar */
@@ -31,6 +31,6 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     )
   },
 )
-IconButton.displayName = 'KuiIconButton'
+IconButton.displayName = 'IconButton'
 
 export { IconButton }

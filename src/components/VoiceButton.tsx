@@ -5,7 +5,7 @@ import { IconButton } from '@/components/IconButton'
 /**
  * VoiceButton — 语音录制按钮
  *
- * 封装自 IconButton → KUI Button 原子
+ * 封装自 IconButton → Button
  */
 export interface VoiceButtonProps {
   /** 是否正在录音 */
@@ -35,6 +35,6 @@ const VoiceButton: React.FC<VoiceButtonProps> = ({
     </IconButton>
   )
 }
-VoiceButton.displayName = 'KuiVoiceButton'
+VoiceButton.displayName = 'VoiceButton'
 
 export { VoiceButton }

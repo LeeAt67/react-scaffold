@@ -7,9 +7,9 @@ import { AttachButton } from '@/components/AttachButton'
 import { ModelSelector } from '@/components/ModelSelector'
 
 /**
- * InputToolbar — 底部工具栏（有机体）
+ * InputToolbar — 底部工具栏。
  *
- * 组装：AttachButton + ModelSelector + (VoiceButton + SettingsButton + SendButton)
+ * 组装 AttachButton + ModelSelector + VoiceButton + SendButton。
  */
 export interface InputToolbarProps {
   // 模型选择
@@ -62,6 +62,6 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
     </div>
   )
 }
-InputToolbar.displayName = 'KuiInputToolbar'
+InputToolbar.displayName = 'InputToolbar'
 
 export { InputToolbar }

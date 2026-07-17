@@ -2,9 +2,9 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * PromptTextarea — 自动撑高的文本域
+ * PromptTextarea — 自动撑高文本域。
  *
- * Claude 风格：透明背景、无边框、自动根据内容增高
+ * 透明背景、无边框、自动根据内容增高。
  */
 export interface PromptTextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -79,6 +79,6 @@ const PromptTextarea = React.forwardRef<HTMLTextAreaElement, PromptTextareaProps
     )
   },
 )
-PromptTextarea.displayName = 'KuiPromptTextarea'
+PromptTextarea.displayName = 'PromptTextarea'
 
 export { PromptTextarea }

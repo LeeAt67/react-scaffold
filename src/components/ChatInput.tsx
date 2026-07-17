@@ -4,13 +4,9 @@ import { PromptTextarea } from '@/components/PromptTextarea'
 import { InputToolbar } from '@/components/InputToolbar'
 
 /**
- * ChatInput — Claude 风格输入框（完整组件）
+ * ChatInput — Claude 风格输入框。
  *
- * 原子链：KuiButton → IconButton → VoiceButton/AttachButton
- *                               → SendButton
- *          PromptTextarea
- *          ModelSelector
- *          └── InputToolbar ──→ ChatInput
+ * 组装 PromptTextarea + InputToolbar。
  */
 export interface ChatInputProps {
   /** 输入值 */
@@ -141,6 +137,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     </div>
   )
 }
-ChatInput.displayName = 'KuiChatInput'
+ChatInput.displayName = 'ChatInput'
 
 export { ChatInput }

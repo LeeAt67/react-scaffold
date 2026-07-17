@@ -76,6 +76,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
     </div>
   )
 }
-ModelSelector.displayName = 'KuiModelSelector'
+ModelSelector.displayName = 'ModelSelector'
 
 export { ModelSelector }

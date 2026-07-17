@@ -4,11 +4,12 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 /**
- * KUI Button — 组件库基础原子
+ * Button — 基础按钮组件。
  *
- * 在 shadcn/ui Button 基础上扩展：
+ * 在 shadcn/ui 基础上扩展：
  * - toolbar: 工具栏灰色按钮（Claude 风格）
- * - rounded: 完全圆形的图标按钮
+ * - primaryCircle: 主页发送圆形按钮
+ * - iconSm / iconMd: 图标专用尺寸
  */
 const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
@@ -68,6 +69,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     )
   },
 )
-Button.displayName = 'KuiButton'
+Button.displayName = 'Button'
 
-export { Button, buttonVariants }
+export { Button }

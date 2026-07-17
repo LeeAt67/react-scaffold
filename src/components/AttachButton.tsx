@@ -5,7 +5,7 @@ import { IconButton } from '@/components/IconButton'
 /**
  * AttachButton — 附件上传按钮
  *
- * 封装自 IconButton → KUI Button 原子
+ * 封装自 IconButton → Button
  */
 export interface AttachButtonProps {
   /** 点击回调（触发文件选择） */
@@ -24,6 +24,6 @@ const AttachButton: React.FC<AttachButtonProps> = ({
     </IconButton>
   )
 }
-AttachButton.displayName = 'KuiAttachButton'
+AttachButton.displayName = 'AttachButton'
 
 export { AttachButton }

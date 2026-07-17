@@ -46,6 +46,6 @@ const SendButton: React.FC<SendButtonProps> = ({
     </Button>
   )
 }
-SendButton.displayName = 'KuiSendButton'
+SendButton.displayName = 'SendButton'
 
 export { SendButton }
