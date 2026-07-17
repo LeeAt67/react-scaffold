@@ -83,8 +83,8 @@ export default defineConfig({
     ],
   },
   devServer: {
-    port: 3000,
-    open: true,
+    port: 8000,
+    open: false,
     historyApiFallback: true,
   },
   output: {

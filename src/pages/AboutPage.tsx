@@ -48,7 +48,7 @@ export default function AboutPage() {
         <CardContent>
           <pre className="text-xs bg-muted p-4 rounded-lg overflow-x-auto">
 {`src/
-├── components/    # 组件（Layout, Counter, TodoList, ui/）
+├── components/    # 组件（Layout, kui/, ui/）
 ├── pages/         # 页面（HomePage, AboutPage）
 ├── stores/        # MobX 状态管理
 ├── lib/           # 工具函数

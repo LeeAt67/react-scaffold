@@ -8,8 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import Counter from '@/components/Counter'
-import TodoList from '@/components/TodoList'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -34,9 +32,6 @@ export default function HomePage() {
 
       {/* Demo 组件 */}
       <div className="space-y-6">
-        <Counter />
-        <TodoList />
-
         {/* 对话框示例 */}
         <div className="flex justify-center gap-3 flex-wrap">
           <Dialog>

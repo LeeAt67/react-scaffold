@@ -1,8 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, useRoutes } from 'react-router-dom'
 import { StoreContext, rootStore } from '@/stores'
-import Layout from '@/components/Layout'
-import HomePage from '@/pages/HomePage'
-import AboutPage from '@/pages/AboutPage'
+import routes from '@/routes'
+
+/**
+ * 路由渲染组件 — 使用 useRoutes() 将数组配置转为路由树
+ */
+function AppRoutes() {
+  return useRoutes(routes)
+}
 
 /**
  * App — 应用根组件
@@ -10,19 +15,13 @@ import AboutPage from '@/pages/AboutPage'
  * 职责：
  * 1. StoreContext.Provider — 注入 MobX 全局状态
  * 2. BrowserRouter — 启用客户端路由
- * 3. Layout — 导航栏 + 页脚的公共布局壳
- * 4. Routes  — 定义页面路由映射
+ * 3. AppRoutes — 渲染路由树（配置来自 routes.tsx）
  */
 function App() {
   return (
     <StoreContext.Provider value={rootStore}>
       <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="about" element={<AboutPage />} />
-          </Route>
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </StoreContext.Provider>
   )

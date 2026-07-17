@@ -1,10 +1,7 @@
 import { createContext, useContext } from 'react'
-import CounterStore from './CounterStore'
-import TodoStore from './TodoStore'
 
 class RootStore {
-  counter = new CounterStore()
-  todo = new TodoStore()
+  // 在此添加新的 store 实例
 }
 
 const rootStore = new RootStore()
@@ -14,5 +11,5 @@ export function useStore() {
   return useContext(StoreContext)
 }
 
-export { RootStore, CounterStore, TodoStore, StoreContext, rootStore }
+export { RootStore, StoreContext, rootStore }
 export default rootStore

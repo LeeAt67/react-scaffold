@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Home, Info, Sun, Moon } from 'lucide-react'
+import { Home, Info, Sun, Moon, Puzzle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useState, useEffect } from 'react'
@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 const navLinks = [
   { to: '/', label: '首页', icon: Home },
   { to: '/about', label: '关于', icon: Info },
+  { to: '/kui', label: 'KUI', icon: Puzzle },
 ]
 
 export default function Layout() {
