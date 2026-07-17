@@ -11,9 +11,9 @@ const logger = createLogger('components:layout')
 const globalStore = new GlobalStore()
 
 const navLinks = [
-  { to: '/', label: '首页', icon: Home },
+  { to: '/', label: 'Claw', icon: Home },
+  { to: '/c', label: 'KUI', icon: Puzzle },
   { to: '/about', label: '关于', icon: Info },
-  { to: '/kui', label: 'KUI', icon: Puzzle },
 ]
 
 /** 细粒度 className 定制 */
@@ -70,7 +70,7 @@ const Layout = forwardRef<HTMLDivElement, LayoutProps>(
             </Link>
             {!sidebarCollapsed && (
               <Link to="/" className="font-semibold text-sm">
-                React Scaffold
+                YES
               </Link>
             )}
             <button

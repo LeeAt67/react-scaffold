@@ -8,19 +8,21 @@ import { createLogger } from '@/utils/logger'
 const logger = createLogger('route')
 
 // 页面组件
+import ClawPage from '@/pages/Claw'
+import HomePage from '@/pages/Home'
+import AboutPage from '@/pages/About'
+import ChatInputDemoPage from '@/pages/ChatInputDemo'
 import Layout from '@/components/Layout'
-import HomePage from '@/pages/HomePage'
-import AboutPage from '@/pages/AboutPage'
-import ChatInputDemo from '@/pages/ChatInputDemo'
 
 /** 路由配置数组 */
 const routes: RouteObject[] = [
   {
     element: <Layout />,
     children: [
-      { index: true, element: <HomePage /> },
+      { index: true, element: <ClawPage /> },
+      { path: 'c', element: <HomePage /> },
       { path: 'about', element: <AboutPage /> },
-      { path: 'kui', element: <ChatInputDemo /> },
+      { path: 'kui', element: <ChatInputDemoPage /> },
     ],
   },
 ]
