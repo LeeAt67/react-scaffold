@@ -4,7 +4,7 @@
  * 运行：npx tsx prisma/seed.ts
  */
 import 'dotenv/config'
-import { PrismaClient } from '../src/generated/prisma/client.js'
+import { PrismaClient } from '../src/generated/prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import * as bcrypt from 'bcryptjs'
 

@@ -2,6 +2,11 @@ import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { loginSchema, refreshSchema } from './dto/login.dto'
 
+/**
+ * AuthController — 鉴权路由。
+ *
+ * 路由前缀 `/api/auth`，通过 NestJS @Controller + @Post 装饰器挂载。
+ */
 @Controller('/api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -54,3 +59,4 @@ export class AuthController {
     return this.authService.register(parsed.data.username, parsed.data.password)
   }
 }
+
