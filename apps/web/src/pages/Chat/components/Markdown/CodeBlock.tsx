@@ -1,29 +1,93 @@
-import { Suspense, lazy, useState } from 'react'
+import { Component, Suspense, lazy, useState, useCallback, Fragment, useMemo } from 'react'
 import { createLogger } from '@yes/shared'
+
+import useInViewOnce from './hooks/useInViewOnce'
 
 const logger = createLogger('chat:code-block')
 
-/** Shiki 高亮器懒加载，减小初始包体积 */
+/** Shiki 高亮器懒加载 */
 const SafeShikiHighlighter = lazy(() => import('react-shiki'))
 
 export interface CodeBlockProps {
-  /** 代码内容 */
   code: string
-  /** 语言标识 */
   language: string
-  /** 是否正在流式输出 */
   isTyping?: boolean
 }
 
+// ── 三层降级检测 ──
+
+/** 检测浏览器是否支持 RegExp lookbehind */
+const supportsLookbehind = (() => {
+  try {
+    new RegExp('(?<=.)')
+    return true
+  } catch {
+    return false
+  }
+})()
+
+// ── 错误边界 ──
+
+interface ShikiErrorBoundaryState {
+  hasError: boolean
+}
+
+class ShikiErrorBoundary extends Component<
+  { fallback: React.ReactNode; children: React.ReactNode },
+  ShikiErrorBoundaryState
+> {
+  state: ShikiErrorBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError(): ShikiErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  render() {
+    if (this.state.hasError) return this.props.fallback
+    return this.props.children
+  }
+}
+
+// ── PlainLines（纯文本占位，与 Shiki 同 DOM 结构） ──
+
+const PlainLines = ({
+  className,
+  code,
+}: {
+  className?: string
+  code: string
+}) => {
+  const lines = code.split('\n')
+  return (
+    <pre className={className}>
+      <code>
+        {lines.map((line, idx) => (
+          <Fragment key={idx}>
+            <span className="line">{line}</span>
+            {idx === lines.length - 1 ? '' : '\n'}
+          </Fragment>
+        ))}
+      </code>
+    </pre>
+  )
+}
+
+// ── CodeBlock 主组件 ──
+
 /**
- * 代码块渲染组件。
+ * 代码块渲染组件，三层降级 + 可视区优先高亮。
  *
- * 流式输出期间渲染纯文本，结束后异步加载 Shiki 进行语法高亮。
+ * 降级链：
+ *   1. 浏览器不支持 RegExp lookbehind → 纯文本 PlainLines
+ *   2. React.lazy 加载 react-shiki 失败 → 纯文本 PlainLines
+ *   3. ShikiErrorBoundary 渲染报错 → 纯文本 PlainLines
+ *
+ * 可视区优先：仅代码块进入视口（含 300px 提前量）才触发 shiki 高亮。
  */
 const CodeBlock = ({ code, language, isTyping = false }: CodeBlockProps) => {
   const [copyLabel, setCopyLabel] = useState('复制')
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(code)
       setCopyLabel('已复制')
@@ -31,43 +95,79 @@ const CodeBlock = ({ code, language, isTyping = false }: CodeBlockProps) => {
     } catch (err) {
       logger.error('复制代码失败:', err)
     }
+  }, [code])
+
+  const [inViewRef, inView] = useInViewOnce<HTMLDivElement>()
+
+  const preClassName = 'overflow-x-auto rounded-b-lg text-xs [&_pre]:rounded-b-lg [&_pre]:text-xs'
+
+  const fallbackPre = useMemo(
+    () => <PlainLines className={preClassName} code={code} />,
+    [code],
+  )
+
+  // 不支持 lookbehind → 直接降级纯文本
+  if (!supportsLookbehind) {
+    return (
+      <div className="group relative my-2">
+        <div className="flex items-center justify-between rounded-t-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+          <span>{language}</span>
+        </div>
+        {fallbackPre}
+      </div>
+    )
   }
 
-  // 流式中：纯文本展示
+  // 流式中 → 纯文本，保留框架结构
   if (isTyping) {
     return (
-      <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">
-        <code>{code}</code>
-      </pre>
+      <div className="group relative my-2">
+        <div className="flex items-center justify-between rounded-t-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+          <span>{language}</span>
+        </div>
+        <div className="rounded-b-lg border border-t-0 border-border">
+          <PlainLines className={preClassName} code={code} />
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="group relative">
-      <div className="flex items-center justify-between rounded-t-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground">
-        <span>{language}</span>
-        <button
-          onClick={handleCopy}
-          className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
-        >
-          {copyLabel}
-        </button>
+    <div ref={inViewRef} className="group relative my-2">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-[10] bg-background">
+        <div className="flex items-center justify-between rounded-t-lg border border-b-0 border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+          <span>{language}</span>
+          <button
+            onClick={handleCopy}
+            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+          >
+            {copyLabel}
+          </button>
+        </div>
       </div>
-      <Suspense
-        fallback={
-          <pre className="overflow-x-auto rounded-b-lg bg-muted px-3 pb-3 text-xs">
-            <code>{code}</code>
-          </pre>
-        }
-      >
-        <SafeShikiHighlighter
-          language={language}
-          theme="github-light"
-          className="overflow-x-auto rounded-b-lg text-xs"
-        >
-          {code}
-        </SafeShikiHighlighter>
-      </Suspense>
+
+      {/* 代码主体：grid 叠层，底层占位撑高，上层高亮覆盖 */}
+      <div className="relative rounded-b-lg border border-t-0 border-border">
+        {/* 底层占位 */}
+        <div aria-hidden>{fallbackPre}</div>
+        {/* 上层高亮：可视区进入后才挂载 */}
+        <div className="absolute inset-0">
+          {inView && (
+            <ShikiErrorBoundary fallback={fallbackPre}>
+              <Suspense fallback={null}>
+                <SafeShikiHighlighter
+                  language={language}
+                  theme="github-light"
+                  className={preClassName}
+                >
+                  {code}
+                </SafeShikiHighlighter>
+              </Suspense>
+            </ShikiErrorBoundary>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
