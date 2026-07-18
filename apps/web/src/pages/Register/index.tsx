@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { cn, createLogger } from '@yes/shared'
+import { cn, createLogger, hashPassword } from '@yes/shared'
 import { FormTip } from '@yes/ui'
 import { api } from '@/service/api'
 import { observer } from 'mobx-react-lite'
@@ -40,9 +40,11 @@ const RegisterPage = forwardRef<HTMLDivElement, RegisterPageProps>(
       setSuccess('')
       setLoading(true)
 
+      const hashed = await hashPassword(password, username)
+
       const [, err] = await api.post('/api/auth/register', {
         username,
-        password,
+        password: hashed,
       })
 
       setLoading(false)

@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { cn, createLogger } from '@yes/shared'
+import { cn, createLogger, hashPassword } from '@yes/shared'
 import { FormTip } from '@yes/ui'
 import { api } from '@/service/api'
 import { authStore } from '@/controller/instances'
@@ -40,11 +40,14 @@ const LoginPage = forwardRef<HTMLDivElement, LoginPageProps>(
       setError('')
       setLoading(true)
 
+      // HMAC-SHA256 哈希，username 为盐，明文不离开浏览器
+      const hashed = await hashPassword(password, username)
+
       const [data, err] = await api.post<{
         accessToken: string
         refreshToken: string
         user: { id: number; username: string }
-      }>('/api/auth/login', { username, password })
+      }>('/api/auth/login', { username, password: hashed })
 
       setLoading(false)
 

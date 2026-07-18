@@ -1,4 +1,4 @@
-import { forwardRef, useCallback } from 'react'
+import { forwardRef, useCallback, type ReactNode } from 'react'
 import { cn } from '@yes/shared'
 import SidebarHeader from './SidebarHeader'
 import SidebarNav from './SidebarNav'
@@ -21,6 +21,8 @@ export interface SidebarProps {
   onClose?: () => void
   /** 导航点击回调 */
   onNavClick?: () => void
+  /** 侧栏底部插槽（PC 端显示） */
+  footer?: ReactNode
   className?: string
   classNames?: SidebarClassNames
 }
@@ -33,7 +35,7 @@ export interface SidebarProps {
  */
 const Sidebar = forwardRef<HTMLElement, SidebarProps>(
   (
-    { open = true, collapsed = false, isMobile = false, onToggle, onClose, onNavClick, className, classNames },
+    { open = true, collapsed = false, isMobile = false, onToggle, onClose, onNavClick, footer, className, classNames },
     ref,
   ) => {
     /** 侧栏内容展开模式（移动端始终展开，PC 端跟折叠状态走） */
@@ -57,6 +59,12 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           collapsed={!expanded}
           onNavClick={handleNavClick}
         />
+        {/* 底部插槽（仅 PC 展开时显示） */}
+        {!isMobile && footer && (
+          <div className="border-t p-2">
+            {footer}
+          </div>
+        )}
       </>
     )
 
