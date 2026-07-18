@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Mic, MicOff } from 'lucide-react'
-import { IconButton } from '@/components/IconButton'
+import { IconButton } from '@yes/ui'
 
 /**
  * VoiceButton — 语音录制按钮

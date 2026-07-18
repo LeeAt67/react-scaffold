@@ -1,7 +1,7 @@
 import { forwardRef, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import SidebarHeader from '@/components/SidebarHeader'
-import SidebarNav from '@/components/SidebarNav'
+import { cn } from '@yes/shared'
+import SidebarHeader from './SidebarHeader'
+import SidebarNav from './SidebarNav'
 
 interface SidebarClassNames {
   root?: string

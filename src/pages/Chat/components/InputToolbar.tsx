@@ -1,15 +1,15 @@
 import * as React from 'react'
 import { AudioLines, Plus } from 'lucide-react'
-import { IconButton } from '@/components/IconButton'
+import { IconButton } from '@yes/ui'
 import { SendButton } from './SendButton'
 import { VoiceButton } from './VoiceButton'
 import { AttachButton } from './AttachButton'
 import { ModelSelector } from './ModelSelector'
 
 /**
- * InputToolbar — 底部工具栏。
+ * InputToolbar �?底部工具栏�?
  *
- * 组装 AttachButton + ModelSelector + VoiceButton + SendButton。
+ * 组装 AttachButton + ModelSelector + VoiceButton + SendButton�?
  */
 export interface InputToolbarProps {
   // 模型选择
@@ -19,7 +19,7 @@ export interface InputToolbarProps {
   // 语音
   recording: boolean
   onVoiceToggle: () => void
-  // 发送
+  // 发�?
   canSend: boolean
   loading: boolean
   onSend: () => void
@@ -51,7 +51,7 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
         <ModelSelector value={model} options={models} onSelect={onModelSelect} />
       </div>
 
-      {/* 右侧：音频指示 + 语音 + 发送 */}
+      {/* 右侧：音频指�?+ 语音 + 发�?*/}
       <div className="flex items-center gap-1">
         <IconButton label="音频可用" onClick={() => {}}>
           <AudioLines className="h-4 w-4" />

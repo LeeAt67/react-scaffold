@@ -30,16 +30,44 @@ src/controller/stores/storeName/AGENTS.md
 
 ## 架构概览
 
-Demo 是 React + TypeScript + MobX + Tailwind CSS 的通用应用，拥有多项功能。
+Demo 是 React + TypeScript + MobX + Tailwind CSS 的 monorepo 应用。
+
+```
+demo/
+├── src/                     ← 前端应用（路由、页面、store、service）
+├── packages/
+│   ├── shared/              ← 通用工具：cn()、createLogger、tokens
+│   └── ui/                  ← 通用 UI 组件：Button、Sidebar、SidebarNav...
+├── package.json             ← workspaces: ["packages/*"]
+└── rspack.config.mjs
+```
 
 | 层级 | 路径 |
 |------|------|
+| 前端应用 | `src/` — 路由、页面、store、service |
+| 通用工具 | `packages/shared/src/` — `@yes/shared`（cn、logger、tokens） |
+| 通用组件 | `packages/ui/src/` — `@yes/ui`（Button、Sidebar 等） |
 | 状态管理 | `src/controller/stores/`（global、conversation、claw、share、storage、voice） |
 | 副作用 | `src/controller/effects/` |
 | 服务层 | `src/service/`（用 Zod 做运行时类型校验） |
-| 组件 | `src/components/` |
 | 页面 | `src/pages/`（`/` → Home，`/claw` → Claw，`/components` → 组件预览） |
 | 路由 | `src/route/index.tsx`，HashRouter |
+
+### 导入规范
+
+```typescript
+// 通用工具 → @yes/shared
+import { cn } from '@yes/shared'
+import { createLogger } from '@yes/shared'
+
+// 通用 UI 组件 → @yes/ui
+import { Button } from '@yes/ui'
+import { Sidebar } from '@yes/ui'
+
+// 应用内模块 → @/xxx
+import { globalStore } from '@/controller/instances'
+import Layout from '@/components/Layout'
+```
 
 ### 关键文件
 
@@ -71,13 +99,13 @@ ComponentName/
 └── assets/            # 组件专属资源（可选）
 ```
 
-全局可复用组件 → `src/components/`；页面专属组件 → `src/pages/PageName/components/`。
+全局可复用组件 → `packages/ui/src/`；页面专属组件 → `src/pages/PageName/components/`。布局壳组件（如 Layout）留在 `src/components/`。
 
 ### 公共组件必须满足
 
 ```tsx
 import { forwardRef } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@yes/shared'
 
 interface MyComponentClassNames {
   root?: string
@@ -108,6 +136,8 @@ export default MyComponent
 
 ```tsx
 import XxxIcon from '@/assets/svg/xxx.svg'
+// 或 packages/ui/src/assets/ 下的 SVG
+import SidebarToggleIcon from './assets/sidebar-toggle.svg'
 ;<XxxIcon className="text- -icon-n1 h-4 w-4" />
 ```
 
@@ -151,7 +181,7 @@ export const sendMessage = (content: string, options?: SendOptions): AbortContro
 **禁止直接使用 `console.log/warn/error`**，必须用 `createLogger`：
 
 ```typescript
-import { createLogger } from '@/utils/logger'
+import { createLogger } from '@yes/shared'
 const logger = createLogger('claw:resource')
 
 // 服务端接口失败 → warn

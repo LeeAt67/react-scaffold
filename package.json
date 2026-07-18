@@ -1,12 +1,15 @@
 {
-  "name": "yes",
+  "name": "yes-monorepo",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "start": "rspack serve",
     "build": "rspack build",
-    "preview": "rspack preview"
+    "preview": "rspack preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.7",

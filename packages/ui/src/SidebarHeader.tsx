@@ -1,8 +1,8 @@
 import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import SidebarToggleIcon from '@/assets/svg/sidebar-toggle.svg'
+import { cn } from '@yes/shared'
+import SidebarToggleIcon from './assets/sidebar-toggle.svg'
 
 interface SidebarHeaderClassNames {
   root?: string
@@ -30,7 +30,7 @@ export interface SidebarHeaderProps {
 /**
  * 侧栏头部组件。
  *
- * PC 展开：Logo + 标题（左） ｜ 折叠切换图标（右）  — 参考  -chat SidebarPanel header
+ * PC 展开：Logo + 标题（左） ｜ 折叠切换图标（右）
  * PC 折叠：仅居中显示折叠切换图标
  * 移动端：Logo + 标题（左） ｜ ✕ 关闭按钮（右）
  */

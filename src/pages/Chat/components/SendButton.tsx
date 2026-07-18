@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ArrowUp, Loader2 } from 'lucide-react'
-import { Button } from '@/components/Button'
+import { Button } from '@yes/ui'
 
 /**
  * SendButton — 发送按钮

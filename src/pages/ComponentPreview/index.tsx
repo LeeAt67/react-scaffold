@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@yes/shared'
 import { ChatInput } from '@/pages/Chat/components/ChatInput'
-import { Button } from '@/components/Button'
-import { IconButton } from '@/components/IconButton'
+import { Button } from '@yes/ui'
+import { IconButton } from '@yes/ui'
 import { ArrowUp, Paperclip, Mic, Settings, ChevronDown } from 'lucide-react'
 
 /**

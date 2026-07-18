@@ -2,7 +2,7 @@ import { forwardRef, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Home, MessageSquare, Puzzle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@yes/shared'
 
 /** 导航项配置 */
 export interface NavItem {

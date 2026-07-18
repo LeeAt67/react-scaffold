@@ -14,7 +14,7 @@ interface LogFn {
   (...args: unknown[]): void
 }
 
-interface Logger {
+export interface Logger {
   debug: LogFn
   info: LogFn
   warn: LogFn

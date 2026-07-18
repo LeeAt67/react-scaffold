@@ -5,7 +5,7 @@
  * Key: warm-leaning monochrome — avoids cold blue-gray defaults.
  */
 
-type TokenEntry = {
+export type TokenEntry = {
   name: string
   cssVar: string
   light: string
@@ -13,7 +13,7 @@ type TokenEntry = {
   usage: string
 }
 
-const tokens: TokenEntry[] = [
+export const tokens: TokenEntry[] = [
   {
     name: 'Background',
     cssVar: '--background',
@@ -50,27 +50,10 @@ const tokens: TokenEntry[] = [
     usage: '次级背景',
   },
   {
-    name: 'Border',
-    cssVar: '--border',
-    light: '#E6E6E0',
+    name: 'Accent',
+    cssVar: '--accent',
+    light: '#E8E8E2',
     dark: '#333333',
-    usage: '分割线/边框',
-  },
-  {
-    name: 'Ring',
-    cssVar: '--ring',
-    light: '#171717',
-    dark: '#EBEBE5',
-    usage: '聚焦环',
-  },
-  {
-    name: 'Destructive',
-    cssVar: '--destructive',
-    light: '#CC3333',
-    dark: '#FF4444',
-    usage: '删除/危险操作',
+    usage: '悬停/选中背景',
   },
 ]
-
-export default tokens
-export type { TokenEntry }

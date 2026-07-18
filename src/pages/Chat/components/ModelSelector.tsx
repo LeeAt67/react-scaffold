@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { ChevronDown } from 'lucide-react'
-import { Button } from '@/components/Button'
+import { Button } from '@yes/ui'
 
 /**
- * ModelSelector — 模型选择器
+ * ModelSelector �?模型选择�?
  *
  * Claude 风格：紧凑下拉按钮，左侧图标 + 名称 + 右侧箭头
  */
