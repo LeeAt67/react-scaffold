@@ -1,0 +1,55 @@
+/* Markdown 排版样式 */
+
+.markdown-prose {
+  @apply prose whitespace-pre-line dark:prose-invert
+    prose-headings:my-1 prose-p:my-0
+    prose-blockquote:my-0 prose-blockquote:font-normal
+    prose-pre:my-0 prose-pre:bg-transparent prose-pre:p-0
+    prose-ol:my-0 prose-ul:my-0 prose-li:my-0
+    prose-table:my-0 prose-img:my-1;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
+  @apply break-all;
+  max-width: 100% !important;
+}
+
+.markdown-prose pre {
+  @apply whitespace-pre-wrap break-all;
+  color: inherit;
+}
+
+.markdown-prose pre code {
+  color: inherit;
+  counter-reset: line;
+}
+
+/* Shiki 行号：使用 CSS counter 方案 */
+.markdown-prose pre code .line {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.markdown-prose pre code .line::before {
+  position: absolute;
+  left: 0;
+  width: 2rem;
+  padding-right: 0.5rem;
+  content: counter(line);
+  counter-increment: line;
+  @apply select-none whitespace-nowrap text-right tabular-nums text-muted-foreground;
+}
+
+/* 空行保持可见 */
+.markdown-prose pre code .line:empty::after {
+  content: ' ';
+}
+
+/* 行内代码 */
+.markdown-prose .codespan {
+  @apply cursor-pointer rounded bg-muted px-1 py-0.5 text-sm;
+}
+
+.markdown-prose thead {
+  @apply text-nowrap;
+}

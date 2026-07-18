@@ -15,14 +15,15 @@ export interface ChatInputProps {
   value: string
   /** 值变�?*/
   onValueChange: (value: string) => void
-  /** 发送回�?*/
+  /** 发送回调 */
   onSend: () => void
+  /** 停止生成回调（流式发送中） */
+  onStop?: () => void
   /** 占位文本 */
   placeholder?: string
   /** 是否加载�?*/
   loading?: boolean
-  /** 是否禁用 */
-  disabled?: boolean
+
   /** 最大字符数 */
   maxLength?: number
   // 模型选择
@@ -46,7 +47,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   placeholder = '输入您的问题，Enter 发送，Shift+Enter 换行',
   loading = false,
-  disabled = false,
   maxLength = 4000,
   model = 'deepseek-chat',
   models = [],
@@ -55,6 +55,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   recording = false,
   onAttach = () => {},
   onSettings = () => {},
+  onStop,
   className,
 }) => {
   const containerRef = React.useRef<HTMLDivElement>(null)
@@ -70,7 +71,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     return () => container.removeEventListener('prompt-send', handler)
   }, [value, loading, onSend])
 
-  const canSend = value.trim().length > 0 && !disabled
+  const canSend = value.trim().length > 0
 
   /** 附件上传 �?触发文件选择 */
   const handleAttach = () => {
@@ -109,7 +110,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       className={cn(
         'relative rounded-2xl border bg-card shadow-sm',
         'transition-shadow focus-within:shadow-md focus-within:ring-1 focus-within:ring-ring/20',
-        disabled && 'opacity-60 pointer-events-none',
         className,
       )}
     >
@@ -119,7 +119,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
         onValueChange={onValueChange}
         placeholder={placeholder}
         maxLength={maxLength}
-        disabled={disabled}
         className="min-h-[44px]"
       />
 
@@ -133,6 +132,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         canSend={canSend}
         loading={loading}
         onSend={onSend}
+        onStop={onStop}
         onAttach={handleAttach}
         onSettings={handleSettings}
       />

@@ -41,9 +41,38 @@ export class ChatController {
     res.setHeader('Connection', 'keep-alive')
     res.flushHeaders()
 
+    /** 写一条完整 SSE 事件 */
+    const sseId = body.conversationId
+    const writeEvent = (event: string, data: Record<string, unknown>) => {
+      res.write(`id:${sseId}\n`)
+      res.write(`event:${event}\n`)
+      res.write(`data:${JSON.stringify(data)}\n\n`)
+    }
+
+    // 首个事件：对话 ID
+    writeEvent('dialogId', { content: body.conversationId })
+
     // AsyncGenerator → SSE 行输出
-    for await (const event of this.chatService.streamChat(body)) {
-      res.write(`data: ${JSON.stringify(event)}\n\n`)
+    for await (const evt of this.chatService.streamChat(body)) {
+      const type = evt.type as string
+      switch (type) {
+        case 'text':
+          writeEvent('message', { type: 'text', content: evt.content as string })
+          break
+        case 'error':
+          writeEvent('error', { content: evt.content as string })
+          break
+        case 'usage':
+          writeEvent('usage', {
+            promptTokens: evt.promptTokens,
+            completionTokens: evt.completionTokens,
+            totalTokens: evt.totalTokens,
+          })
+          break
+        case 'done':
+          writeEvent('finish', { content: '[DONE]' })
+          break
+      }
     }
 
     res.end()

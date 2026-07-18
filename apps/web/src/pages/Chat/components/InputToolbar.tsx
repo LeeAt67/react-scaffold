@@ -7,9 +7,9 @@ import { AttachButton } from './AttachButton'
 import { ModelSelector } from './ModelSelector'
 
 /**
- * InputToolbar �?底部工具栏�?
+ * InputToolbar �?底部工具栏�?
  *
- * 组装 AttachButton + ModelSelector + VoiceButton + SendButton�?
+ * 组装 AttachButton + ModelSelector + VoiceButton + SendButton�?
  */
 export interface InputToolbarProps {
   // 模型选择
@@ -19,10 +19,12 @@ export interface InputToolbarProps {
   // 语音
   recording: boolean
   onVoiceToggle: () => void
-  // 发�?
+  // 发�?
   canSend: boolean
   loading: boolean
   onSend: () => void
+  /** 停止生成 */
+  onStop?: () => void
   // 附件
   onAttach: () => void
   // 设置（已移除，保留类型兼容可选）
@@ -38,6 +40,7 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
   canSend,
   loading,
   onSend,
+  onStop,
   onAttach,
   onSettings,
 }) => {
@@ -51,13 +54,13 @@ const InputToolbar: React.FC<InputToolbarProps> = ({
         <ModelSelector value={model} options={models} onSelect={onModelSelect} />
       </div>
 
-      {/* 右侧：音频指�?+ 语音 + 发�?*/}
+      {/* 右侧：音频指�?+ 语音 + 发�?*/}
       <div className="flex items-center gap-1">
         <IconButton label="音频可用" onClick={() => {}}>
           <AudioLines className="h-4 w-4" />
         </IconButton>
         <VoiceButton recording={recording} onToggle={onVoiceToggle} />
-        <SendButton canSend={canSend} loading={loading} onSend={onSend} />
+        <SendButton canSend={canSend} loading={loading} onSend={onSend} onStop={onStop} />
       </div>
     </div>
   )

@@ -48,6 +48,8 @@ export interface ReqConfig {
   headers?: Record<string, string>
   /** 请求超时（毫秒） */
   timeout?: number
+  /** HTTP 401 时的回调（用于触发登出跳转） */
+  onUnauthorized?: () => void
 }
 
 /**
@@ -72,6 +74,7 @@ export class Req {
   private defaultHeaders: Record<string, string>
   private timeout: number
   private token: string | null = null
+  private onUnauthorized: (() => void) | null = null
 
   constructor(config: ReqConfig = {}) {
     this.baseURL = config.baseURL ?? ''
@@ -81,6 +84,7 @@ export class Req {
       ...config.headers,
     }
     this.timeout = config.timeout ?? 30_000
+    this.onUnauthorized = config.onUnauthorized ?? null
   }
 
   // ==================== 公开方法 ====================
@@ -187,14 +191,17 @@ export class Req {
       if (!res.ok) {
         const text = await res.text().catch(() => '')
         logger.warn(`Req ${method} ${path} → ${res.status}`)
+        if (res.status === 401) this.onUnauthorized?.()
         return [null, new ReqError(text || res.statusText, res.status, url, method, text)]
       }
 
       // 204 No Content
       if (res.status === 204) return [null as T, null]
 
-      const data = await res.json() as T
-      return [data, null]
+      const raw = await res.json()
+      const result = extractData(raw, url, method)
+      if ('err' in result) return [null, result.err]
+      return [result.data as T, null]
     } catch (err: unknown) {
       clear()
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -232,6 +239,7 @@ export class Req {
 
       if (!res.ok) {
         logger.warn(`Req stream ${method} ${path} → ${res.status}`)
+        if (res.status === 401) this.onUnauthorized?.()
         return [null, this.toError(res.statusText, res, url, method)]
       }
 
@@ -249,4 +257,26 @@ export class Req {
       )]
     }
   }
+}
+
+/**
+ * 从统一响应 { code, msg, data } 中提取 data。
+ *
+ * code !== 0 时返回 ReqError，调用方通过 [data, err] 感知。
+ */
+function extractData<T>(raw: unknown, url: string, method: string): { data: T } | { err: ReqError } {
+  if (!raw || typeof raw !== 'object') return { data: raw as T }
+
+  const resp = raw as Record<string, unknown>
+
+  if ('code' in resp) {
+    if (resp.code !== 0) {
+      const msg = typeof resp.msg === 'string' ? resp.msg : `Error code ${resp.code}`
+      return { err: new ReqError(msg, resp.code as number, url, method) }
+    }
+    return { data: ('data' in resp ? resp.data : null) as T }
+  }
+
+  // 无 code 字段 → 原样返回（兼容非统一格式的响应）
+  return { data: raw as T }
 }

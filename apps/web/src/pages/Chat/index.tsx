@@ -1,8 +1,9 @@
-import { forwardRef, useState, useEffect } from 'react'
+import { forwardRef, useState, useEffect, useRef, useCallback } from 'react'
 import { cn, createLogger } from '@yes/shared'
 import { observer } from 'mobx-react-lite'
 import { ChatInput } from './components/ChatInput'
 import Welcome from './components/Welcome'
+import Markdown from './components/Markdown'
 import { streamChatMessage } from '@/service/chat'
 import { setApiToken, api } from '@/service/api'
 import { conversationStore, authStore } from '@/controller/instances'
@@ -32,6 +33,7 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
     const [model, setModel] = useState('deepseek-chat')
     const [models, setModels] = useState<string[]>(DEFAULT_MODELS)
     const { messages, streaming, conversationId } = conversationStore
+    const abortRef = useRef<AbortController | null>(null)
 
     // 从后端拉取模型列表
     useEffect(() => {
@@ -41,7 +43,7 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
     }, [])
 
     /** 发送消息 — 调用流式 API，token 实时追加到 store */
-    const handleSend = async () => {
+    const handleSend = useCallback(async () => {
       const query = inputValue.trim()
       if (!query || streaming) return
 
@@ -50,6 +52,10 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
 
       // 同步 auth token
       setApiToken(authStore.accessToken)
+
+      // 创建 AbortController，用于取消
+      const controller = new AbortController()
+      abortRef.current = controller
 
       // 用户消息先入 store
       conversationStore.addMessage({ role: 'user', content: query })
@@ -62,10 +68,21 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
       }, {
         conversationId,
         modelConfig: { model },
+        signal: controller.signal,
       })
 
+      // 请求完毕后清理
+      abortRef.current = null
       conversationStore.streaming = false
-    }
+    }, [inputValue, streaming, model, conversationId])
+
+    /** 停止生成 — 中断当前流式请求 */
+    const handleStop = useCallback(() => {
+      if (abortRef.current) {
+        abortRef.current.abort()
+        abortRef.current = null
+      }
+    }, [])
 
     return (
       <div
@@ -88,17 +105,22 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
                     msg.role === 'user' ? 'justify-end' : 'justify-start',
                   )}
                 >
-                  <div
-                    className={cn(
-                      'max-w-[80%] rounded-xl px-4 py-3 text-sm leading-6',
-                      msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-foreground',
-                      !msg.content && 'italic text-muted-foreground',
-                    )}
-                  >
-                    {msg.content || (conversationStore.streaming && msg.role === 'assistant' ? '思考中…' : '')}
-                  </div>
+                  {msg.role === 'user' ? (
+                    <div className="max-w-[80%] rounded-xl bg-primary px-4 py-3 text-sm leading-6 text-primary-foreground">
+                      {msg.content}
+                    </div>
+                  ) : (
+                    <div className="max-w-[80%] rounded-xl bg-muted px-4 py-3 text-sm leading-6 text-foreground">
+                      {msg.content ? (
+                        <Markdown
+                          content={msg.content}
+                          isTyping={streaming && msg.role === 'assistant'}
+                        />
+                      ) : streaming ? (
+                        <span className="italic text-muted-foreground">思考中…</span>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -121,8 +143,8 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
               value={inputValue}
               onValueChange={setInputValue}
               onSend={handleSend}
+              onStop={handleStop}
               loading={streaming}
-              disabled={streaming}
               placeholder="输入您的问题，Enter 发送，Shift+Enter 换行"
               model={model}
               models={models}

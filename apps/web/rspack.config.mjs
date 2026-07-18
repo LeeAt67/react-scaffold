@@ -80,10 +80,19 @@ export default defineConfig({
         test: /\.css$/,
         use: [
           {
+            loader: 'style-loader',
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+            },
+          },
+          {
             loader: 'postcss-loader',
           },
         ],
-        type: 'css',
+        type: 'javascript/auto',
       },
       {
         test: /\.svg$/,
