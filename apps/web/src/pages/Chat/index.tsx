@@ -4,7 +4,8 @@ import { observer } from 'mobx-react-lite'
 import { ChatInput } from './components/ChatInput'
 import Welcome from './components/Welcome'
 import { streamChatMessage } from '@/service/chat'
-import { conversationStore } from '@/controller/instances'
+import { setApiToken } from '@/service/api'
+import { conversationStore, authStore } from '@/controller/instances'
 
 const logger = createLogger('chat:page')
 
@@ -35,6 +36,9 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
 
       logger.info('Sending:', query)
       setInputValue('')
+
+      // 同步 auth token
+      setApiToken(authStore.accessToken)
 
       // 用户消息先入 store
       conversationStore.addMessage({ role: 'user', content: query })

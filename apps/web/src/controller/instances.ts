@@ -12,12 +12,16 @@ import ClawStore from './stores/claw'
 import ShareStore from './stores/share'
 import StorageStore from './stores/storage'
 import VoiceStore from './stores/voice'
+import AuthStore from './stores/auth'
 
 /** 本地存储管理实例 */
 export const localStorageStore = new StorageStore()
 
 /** 全局状态管理实例 */
 export const globalStore = new GlobalStore()
+
+/** 鉴权状态管理实例 */
+export const authStore = new AuthStore()
 
 /** 对话消息管理实例 */
 export const conversationStore = new ConversationStore()

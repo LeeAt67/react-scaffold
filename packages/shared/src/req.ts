@@ -71,6 +71,7 @@ export class Req {
   private prefix: string
   private defaultHeaders: Record<string, string>
   private timeout: number
+  private token: string | null = null
 
   constructor(config: ReqConfig = {}) {
     this.baseURL = config.baseURL ?? ''
@@ -83,6 +84,11 @@ export class Req {
   }
 
   // ==================== 公开方法 ====================
+
+  /** 设置 JWT token，后续请求自动带 ************** ****** 头 */
+  setToken(token: string | null): void {
+    this.token = token
+  }
 
   /** GET 请求 */
   get<T = unknown>(path: string, signal?: AbortSignal): ReqResult<T> {
@@ -149,6 +155,12 @@ export class Req {
     return new ReqError(message, res.status, url, method)
   }
 
+  /** 构建请求头 — 自动附加 Authorization */
+  private buildHeaders(): Record<string, string> {
+    if (!this.token) return this.defaultHeaders
+    return { ...this.defaultHeaders, Authorization: `Bearer ${this.token}` }
+  }
+
   /**
    * 通用请求 — 自动 JSON 解析。
    *
@@ -166,7 +178,7 @@ export class Req {
     try {
       const res = await fetch(url, {
         method,
-        headers: this.defaultHeaders,
+        headers: this.buildHeaders(),
         body: body !== undefined ? JSON.stringify(body) : undefined,
         signal,
       })
@@ -212,7 +224,7 @@ export class Req {
     try {
       const res = await fetch(url, {
         method,
-        headers: this.defaultHeaders,
+        headers: this.buildHeaders(),
         body: body !== undefined ? JSON.stringify(body) : undefined,
         signal,
       })
