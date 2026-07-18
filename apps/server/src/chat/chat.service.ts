@@ -30,7 +30,7 @@ export const chatRequestSchema = z.object({
 export type ChatRequest = z.infer<typeof chatRequestSchema>
 
 const DEFAULT_MODEL_CONFIG = {
-  model: 'gpt-4o-mini',
+  model: 'deepseek-chat',
   enableThinking: false,
   webSearchStatus: 'disabled' as const,
   maxTokens: 2048,

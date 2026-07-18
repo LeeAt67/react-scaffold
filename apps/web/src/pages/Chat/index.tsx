@@ -1,13 +1,15 @@
-import { forwardRef, useState } from 'react'
+import { forwardRef, useState, useEffect } from 'react'
 import { cn, createLogger } from '@yes/shared'
 import { observer } from 'mobx-react-lite'
 import { ChatInput } from './components/ChatInput'
 import Welcome from './components/Welcome'
 import { streamChatMessage } from '@/service/chat'
-import { setApiToken } from '@/service/api'
+import { setApiToken, api } from '@/service/api'
 import { conversationStore, authStore } from '@/controller/instances'
 
 const logger = createLogger('chat:page')
+
+const DEFAULT_MODELS = ['deepseek-chat', 'deepseek-reasoner']
 
 interface ChatPageClassNames {
   root?: string
@@ -27,14 +29,23 @@ export interface ChatPageProps {
 const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
   ({ className, classNames }, ref) => {
     const [inputValue, setInputValue] = useState('')
+    const [model, setModel] = useState('deepseek-chat')
+    const [models, setModels] = useState<string[]>(DEFAULT_MODELS)
     const { messages, streaming, conversationId } = conversationStore
+
+    // 从后端拉取模型列表
+    useEffect(() => {
+      api.get<Array<{ id: string }>>('/api/models').then(([data]) => {
+        if (data && data.length > 0) setModels(data.map((m) => m.id))
+      })
+    }, [])
 
     /** 发送消息 — 调用流式 API，token 实时追加到 store */
     const handleSend = async () => {
       const query = inputValue.trim()
       if (!query || streaming) return
 
-      logger.info('Sending:', query)
+      logger.info('Sending:', { query, model })
       setInputValue('')
 
       // 同步 auth token
@@ -50,6 +61,7 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
         conversationStore.appendToken(token)
       }, {
         conversationId,
+        modelConfig: { model },
       })
 
       conversationStore.streaming = false
@@ -112,6 +124,9 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
               loading={streaming}
               disabled={streaming}
               placeholder="输入您的问题，Enter 发送，Shift+Enter 换行"
+              model={model}
+              models={models}
+              onModelSelect={setModel}
             />
           </div>
         </div>
