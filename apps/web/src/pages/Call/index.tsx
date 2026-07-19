@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { observer } from 'mobx-react-lite'
 import { cn, createLogger } from '@yes/shared'
@@ -7,30 +7,45 @@ import livekitService from '@/service/livekit'
 import CallControls from './components/CallControls'
 import VideoGrid from './components/VideoGrid'
 import CallStatusBar from './components/CallStatusBar'
-import AudioVisualizer from './components/AudioVisualizer'
+import AudioWaveform from './components/AudioWaveform'
+import TranscriptionPanel from './components/TranscriptionPanel'
 
 const logger = createLogger('call:page')
 
 /**
- * CallPage — 语音/视频通话页面。
+ * CallPage — 语音/视频通话页面（KUI 暖白色调）。
  *
- * 全屏通话界面，类似打电话的视觉效果：
- * - 渐变背景 + 对方头像（无视频时）/ 视频画面
- * - 底部控制栏：静音 / 摄像头 / 扬声器 / 挂断
- * - 通话时长计时器
+ * 顶部状态栏 → 远端头像/视频 → 本地声波 → ASR 字幕 → 底部控制栏。
  */
 const CallPage: React.FC = () => {
   const navigate = useNavigate()
-  const { connectionState, callState, remoteVideoTrack, remoteAudioTrack, isMuted, isVideoOff } = livekitStore
+  const {
+    connectionState,
+    callState,
+    remoteVideoTrack,
+    isMuted,
+    isVideoOff,
+    transcriptionMessages,
+  } = livekitStore
 
-  /** 进入页面 → 自动获取 Token 并连接 LiveKit */
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
+
+  /** 进入页面 → Token / 连接 LiveKit / 获取本地麦克风流 */
   useEffect(() => {
     const initCall = async () => {
       try {
-        // 用当前 conversationId 作为房间名
         const roomName = `room_${conversationStore.activeId ?? 'default'}`
         const { wsUrl, token } = await livekitService.getToken(roomName)
         await livekitStore.connect(wsUrl, token, roomName)
+
+        // 获取本地麦克风流供声波可视化
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          setLocalStream(stream)
+        } catch {
+          logger.warn('无法获取本地音频流用于波形显示')
+        }
+
         logger.info('通话已连接:', roomName)
       } catch (error) {
         logger.error('通话连接失败:', error)
@@ -41,70 +56,92 @@ const CallPage: React.FC = () => {
     initCall()
 
     return () => {
+      localStream?.getTracks().forEach(t => t.stop())
       livekitStore.disconnect()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate])
 
-  /** 挂断通话 */
+  /** 挂断 */
   const handleHangUp = useCallback(async () => {
+    localStream?.getTracks().forEach(t => t.stop())
     await livekitStore.disconnect()
     navigate(-1)
-  }, [navigate])
+  }, [navigate, localStream])
 
-  /** 返回时断开连接 */
+  /** 返回 */
   const handleBack = useCallback(async () => {
+    localStream?.getTracks().forEach(t => t.stop())
     await livekitStore.disconnect()
     navigate(-1)
-  }, [navigate])
+  }, [navigate, localStream])
 
   return (
-    <div className={cn(
-      'flex h-full flex-col',
-      'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900',
-    )}>
+    <div className="flex h-full flex-col bg-background">
       {/* 顶部状态栏 */}
       <CallStatusBar
         connectionState={connectionState}
         duration={livekitStore.formattedDuration}
         onBack={handleBack}
+        className="border-b"
       />
 
-      {/* 通话主画面 */}
-      <div className="flex flex-1 flex-col items-center justify-center p-6">
+      {/* 主区域 */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-4">
+        {/* 远端视频 / 头像 */}
         {remoteVideoTrack ? (
           <VideoGrid
             remoteTrack={remoteVideoTrack}
             localTrack={livekitStore.localVideoTrack}
             isVideoOff={isVideoOff}
+            className="max-h-[45%] w-full"
           />
         ) : (
-          <div className="flex flex-col items-center gap-6">
-            {/* 对方头像占位 */}
-            <div className="flex h-32 w-32 items-center justify-center rounded-full bg-slate-700 shadow-lg ring-2 ring-slate-600">
-              <span className="text-3xl font-semibold text-slate-300">
-                {conversationStore.activeId ? 'AI' : '📞'}
-              </span>
+          <div className="flex flex-col items-center gap-3">
+            <div className={cn(
+              'flex h-24 w-24 items-center justify-center rounded-full bg-muted ring-4 ring-muted transition-all',
+              connectionState === 'connecting' && 'animate-pulse',
+              connectionState === 'connected' && 'ring-primary/20',
+            )}>
+              <span className="text-2xl select-none">🤖</span>
             </div>
 
-            {/* 音频波形动画（有远端音频时显示） */}
-            {remoteAudioTrack && connectionState === 'connected' && <AudioVisualizer />}
-
-            {/* 等待连接状态 */}
             {connectionState === 'connecting' && (
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
-                <span className="text-sm text-slate-400">正在连接...</span>
-              </div>
+              <span className="text-sm text-muted-foreground">正在呼叫...</span>
             )}
-
-            {/* 已挂断 */}
+            {connectionState === 'connected' && (
+              <span className="text-sm text-muted-foreground">通话中</span>
+            )}
             {callState === 'ended' && (
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-lg text-slate-300">通话已结束</span>
-                <span className="text-sm text-slate-500">时长 {livekitStore.formattedDuration}</span>
-              </div>
+              <span className="text-sm text-muted-foreground">
+                通话已结束 · {livekitStore.formattedDuration}
+              </span>
             )}
           </div>
+        )}
+
+        {/* 本地麦克风声波 */}
+        {connectionState === 'connected' && localStream && (
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              你的声音
+            </span>
+            <AudioWaveform
+              stream={localStream}
+              color="hsl(var(--primary))"
+              width={240}
+              height={48}
+              barWidth={3}
+            />
+          </div>
+        )}
+
+        {/* ASR 转写字幕 */}
+        {connectionState === 'connected' && (
+          <TranscriptionPanel
+            messages={transcriptionMessages}
+            className="w-full max-w-sm"
+          />
         )}
       </div>
 
@@ -115,6 +152,7 @@ const CallPage: React.FC = () => {
         onToggleMute={livekitStore.toggleMute}
         onToggleVideo={livekitStore.toggleVideo}
         onHangUp={handleHangUp}
+        className="border-t pb-6"
       />
     </div>
   )

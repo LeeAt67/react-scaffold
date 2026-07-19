@@ -10,6 +10,18 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'dis
 /** 通话状态 */
 export type CallState = 'idle' | 'dialing' | 'in-call' | 'ended'
 
+/** 一条 ASR 转写消息 */
+export interface TranscriptionMessage {
+  /** 说话人：user（本地）/ agent（远端 AI） */
+  speaker: 'user' | 'agent'
+  /** 转写文本 */
+  text: string
+  /** 是否为最终结果（false 表示中间结果） */
+  isFinal: boolean
+  /** 时间戳 */
+  timestamp: number
+}
+
 /**
  * LiveKitStore — 语音/视频通话状态管理。
  *
@@ -42,6 +54,12 @@ class LiveKitStore {
 
   /** 是否关闭摄像头 */
   isVideoOff = false
+
+  /** 麦克风录制器（供声波可视化使用） */
+  mediaRecorder: MediaRecorder | null = null
+
+  /** ASR 转写消息列表（Agent 通过 Data Channel RPC 回传） */
+  transcriptionMessages: TranscriptionMessage[] = []
 
   /** 通话时长（秒） */
   callDuration = 0
@@ -87,6 +105,37 @@ class LiveKitStore {
       runInAction(() => { this.connectionState = 'connecting' })
       logger.info('正在重连 LiveKit 房间...')
     })
+
+    // 注册 ASR 转写 Data Channel RPC 监听
+    this.registerASRListener()
+  }
+
+  /**
+   * 注册 ASR 转写 RPC 监听器。
+   *
+   * Agent 端通过 Data Channel 发送 `lk.asr_transcription` RPC，
+   * payload 为 { speaker, text, isFinal }。
+   */
+  private registerASRListener = () => {
+    this.room.registerRpcMethod('lk.asr_transcription', async (data) => {
+      try {
+        const { speaker, text, isFinal } = JSON.parse(data.payload || '{}')
+        if (text) {
+          runInAction(() => {
+            this.transcriptionMessages.push({
+              speaker: speaker ?? 'agent',
+              text,
+              isFinal: isFinal ?? true,
+              timestamp: Date.now(),
+            })
+          })
+        }
+      } catch {
+        logger.warn('无法解析 ASR 转写消息:', data.payload)
+      }
+      return 'OK'
+    })
+    logger.debug('已注册 lk.asr_transcription RPC 监听')
   }
 
   /** 处理远端轨道订阅 */
@@ -165,6 +214,8 @@ class LiveKitStore {
       runInAction(() => {
         this.connectionState = 'disconnected'
         this.callState = 'idle'
+        this.transcriptionMessages = []
+        this.mediaRecorder = null
       })
       this.stopDurationTimer()
       this.cleanupTracks()

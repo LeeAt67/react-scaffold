@@ -1,13 +1,11 @@
 import React from 'react'
 import { cn } from '@yes/shared'
 import { Mic, MicOff, Video, VideoOff, Volume2, PhoneOff } from 'lucide-react'
-import { Button } from '@yes/ui'
 
 /**
- * CallControls — 通话底部控制栏。
+ * CallControls — 通话底部控制栏（KUI 暖白色调适配）。
  *
- * 四个按钮：静音 / 摄像头 / 扬声器 / 挂断
- * 挂断按钮使用红色突出显示。
+ * 四按钮：静音 / 摄像头 / 扬声器 / 挂断（destructive 红色突出）。
  */
 export interface CallControlsProps {
   isMuted: boolean
@@ -17,6 +15,10 @@ export interface CallControlsProps {
   onHangUp: () => void
   className?: string
 }
+
+const btn = cn(
+  'flex h-12 w-12 items-center justify-center rounded-full transition-colors',
+)
 
 const CallControls: React.FC<CallControlsProps> = ({
   isMuted,
@@ -28,17 +30,17 @@ const CallControls: React.FC<CallControlsProps> = ({
 }) => {
   return (
     <div className={cn(
-      'flex items-center justify-center gap-6 px-6 pb-10 pt-4',
+      'flex items-center justify-center gap-4 px-6 pt-3',
       className,
     )}>
       {/* 静音 */}
       <button
         onClick={onToggleMute}
         className={cn(
-          'flex h-12 w-12 items-center justify-center rounded-full transition-colors',
+          btn,
           isMuted
-            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-            : 'bg-white/10 text-white hover:bg-white/20',
+            ? 'bg-destructive/10 text-destructive hover:bg-destructive/15'
+            : 'hover:bg-muted',
         )}
         title={isMuted ? '取消静音' : '静音'}
       >
@@ -49,10 +51,10 @@ const CallControls: React.FC<CallControlsProps> = ({
       <button
         onClick={onToggleVideo}
         className={cn(
-          'flex h-12 w-12 items-center justify-center rounded-full transition-colors',
+          btn,
           isVideoOff
-            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-            : 'bg-white/10 text-white hover:bg-white/20',
+            ? 'bg-destructive/10 text-destructive hover:bg-destructive/15'
+            : 'hover:bg-muted',
         )}
         title={isVideoOff ? '开启摄像头' : '关闭摄像头'}
       >
@@ -61,19 +63,19 @@ const CallControls: React.FC<CallControlsProps> = ({
 
       {/* 扬声器 */}
       <button
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className={cn(btn, 'text-muted-foreground hover:bg-muted')}
         title="扬声器"
         onClick={() => {}}
       >
         <Volume2 className="h-5 w-5" />
       </button>
 
-      {/* 挂断 */}
+      {/* 挂断 — 红色突出 */}
       <button
         onClick={onHangUp}
         className={cn(
           'flex h-14 w-14 items-center justify-center rounded-full',
-          'bg-red-500 text-white shadow-lg shadow-red-500/30',
+          'bg-destructive text-destructive-foreground shadow-md',
           'transition-transform hover:scale-110 active:scale-95',
         )}
         title="挂断"
