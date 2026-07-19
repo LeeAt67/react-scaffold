@@ -15,7 +15,7 @@ rtc:
 
 # API 密钥（用于后端 SDK 签发 Token）
 keys:
-  devkey: secretsecretsecretsecret12
+  devkey: 5c38561df58a9b3470b42d53f267dd69b7db56618a1edf13175252b8c0c56899
 
 # 日志级别
 logging:

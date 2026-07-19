@@ -44,7 +44,7 @@ export class LiveKitController {
   @Post('/token')
   async issueToken(@Body() rawBody: unknown, @Req() req: Request): Promise<LiveKitTokenResponse> {
     const parsed = this.parseOrThrow(tokenRequestSchema, rawBody)
-    const userId = (req as any).user?.sub ?? (req as any).user?.userId ?? 'anonymous'
+    const userId = String((req as any).user?.sub ?? (req as any).user?.userId ?? 'anonymous')
     const userName = (req as any).user?.username ?? userId
 
     logger.info('Token requested:', { roomName: parsed.roomName, userId })

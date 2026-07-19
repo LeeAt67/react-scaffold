@@ -38,9 +38,10 @@ COPY --from=builder /app/apps/server/dist /app/dist
 COPY --from=builder /app/apps/server/prisma /app/prisma
 COPY --from=builder /app/apps/server/prisma.config.ts /app/
 COPY --from=builder /app/apps/server/package.json /app/
-# 从生产依赖阶段复制 node_modules
+# 从生产依赖阶段复制 node_modules（npm workspaces 会将依赖提升到根 node_modules）
 COPY --from=prod-deps /app/apps/server/node_modules /app/node_modules
+COPY --from=prod-deps /app/node_modules /app/node_modules
 
 ENV PORT=3001
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
