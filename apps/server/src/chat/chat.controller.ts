@@ -43,7 +43,7 @@ export class ChatController {
 
     /** 写一条完整 SSE 事件 */
     const sseId = body.conversationId
-    const writeEvent = (event: string, data: Record<string, unknown>) => {
+    const writeEvent = (event: string, data: unknown) => {
       res.write(`id:${sseId}\n`)
       res.write(`event:${event}\n`)
       res.write(`data:${JSON.stringify(data)}\n\n`)
@@ -56,6 +56,15 @@ export class ChatController {
     for await (const evt of this.chatService.streamChat(body)) {
       const type = evt.type as string
       switch (type) {
+        case 'tool_call':
+          writeEvent('tool_call', { name: evt.name, arguments: evt.arguments })
+          break
+        case 'tool_progress':
+          writeEvent('tool_progress', { name: evt.name, message: evt.message })
+          break
+        case 'tool_result':
+          writeEvent('tool_result', { name: evt.name, result: evt.result })
+          break
         case 'text':
           writeEvent('message', { type: 'text', content: evt.content as string })
           break

@@ -43,10 +43,10 @@ const Layout = forwardRef<HTMLDivElement, LayoutProps>(
           className,
         )}
       >
-        {/* 侧边栏：PC 收起时不渲染，移动端始终以覆盖层模式存在 */}  
-        {(isMobile || !sidebarCollapsed) && (
+        {/* 侧边栏：仅在展开时渲染（PC 折叠 / 移动端关闭时不渲染） */}
+        {!sidebarCollapsed && (
           <Sidebar
-            open={isMobile || !sidebarCollapsed}
+            open={!sidebarCollapsed}
             collapsed={!isMobile && sidebarCollapsed}
             isMobile={isMobile}
             onToggle={toggleSidebar}

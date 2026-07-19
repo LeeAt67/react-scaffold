@@ -1,12 +1,15 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react'
+import { runInAction } from 'mobx'
 import { cn, createLogger } from '@yes/shared'
 import { observer } from 'mobx-react-lite'
 import { ChatInput } from './components/ChatInput'
 import Welcome from './components/Welcome'
 import Markdown from './components/Markdown'
+import SearchResultPanel from './components/SearchResultPanel'
+import ToolRenderer from '@/components/ToolRenderer'
 import { streamChatMessage } from '@/service/chat'
 import { setApiToken, api } from '@/service/api'
-import { conversationStore, authStore } from '@/controller/instances'
+import { conversationStore, authStore, toolStore } from '@/controller/instances'
 
 const logger = createLogger('chat:page')
 
@@ -35,8 +38,21 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
     const [inputValue, setInputValue] = useState(() => localStorage.getItem(DRAFT_KEY) ?? '')
     const [model, setModel] = useState('deepseek-v4-pro')
     const [models, setModels] = useState<string[]>(DEFAULT_MODELS)
-    const { messages, streaming, activeId } = conversationStore
+    const [searchPanelOpen, setSearchPanelOpen] = useState(false)
+    const { messages, streaming, activeId, webSearchEnabled } = conversationStore
     const abortRef = useRef<AbortController | null>(null)
+
+    // 从 toolStore 提取搜索结果（给 SearchResultPanel 用）
+    const webSearchResults = (() => {
+      const call = toolStore.calls.find(c => c.toolName === 'web_search' && c.status === 'completed')
+      if (!call?.result?.data) return []
+      const d = call.result.data
+      if (Array.isArray(d)) return d
+      if (typeof d === 'string') {
+        try { return JSON.parse(d) } catch { return [] }
+      }
+      return []
+    })()
 
     // 从后端拉取模型列表
     useEffect(() => {
@@ -58,7 +74,7 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
       const query = inputValue.trim()
       if (!query || streaming || !activeId) return
 
-      logger.info('Sending:', { query, model })
+      logger.info('Sending:', { query, model, webSearchEnabled })
 
       // 持久化草稿：防止发送途中 401 导致输入内容丢失
       localStorage.setItem(DRAFT_KEY, inputValue)
@@ -71,23 +87,57 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
       const controller = new AbortController()
       abortRef.current = controller
 
+      // 重置工具调用
+      toolStore.reset()
+
+      // 提取当前对话历史（不含即将发送的用户消息和 AI 占位）
+      const history = conversationStore.messages.map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }))
+
       // 用户消息先入 store
       conversationStore.addMessage({ role: 'user', content: query })
       // AI 占位消息（流式追加）
       conversationStore.addMessage({ role: 'assistant', content: '' })
-      conversationStore.streaming = true
+      runInAction(() => { conversationStore.streaming = true })
 
       const messages = await streamChatMessage(query, (token) => {
         conversationStore.appendToken(token)
       }, {
         conversationId: activeId!,
-        modelConfig: { model },
+        modelConfig: {
+          model,
+          webSearchStatus: webSearchEnabled ? 'enabled' : 'disabled',
+        },
         signal: controller.signal,
+        onToolCall: (name, args) => {
+          runInAction(() => { toolStore.addCall(name, args) })
+        },
+        onToolProgress: (name, message) => {
+          runInAction(() => { toolStore.setProgress(name, message) })
+        },
+        onToolResult: (name, result) => {
+          runInAction(() => {
+            const calls = toolStore.calls
+            let idx = -1
+            for (let i = calls.length - 1; i >= 0; i--) {
+              if (calls[i].toolName === name && calls[i].status === 'running') {
+                idx = i
+                break
+              }
+            }
+            if (idx >= 0) {
+              toolStore.completeCall(idx, { data: result })
+            }
+          })
+        },
+        history,
       })
 
       // 请求完毕后清理
       abortRef.current = null
-      conversationStore.streaming = false
+      runInAction(() => { conversationStore.streaming = false })
 
       // 发送成功 → 清除草稿
       if (messages.length > 0) {
@@ -98,7 +148,7 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
         conversationStore.removeLastMessages(2)
         setInputValue(query)
       }
-    }, [inputValue, streaming, model, activeId])
+    }, [inputValue, streaming, model, activeId, webSearchEnabled])
 
     /** 停止生成 — 中断当前流式请求 */
     const handleStop = useCallback(() => {
@@ -120,6 +170,16 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
         {/* 消息列表（有消息时滚动显示） */}
         {messages.length > 0 ? (
           <div className="flex-1 overflow-y-auto px-4 py-6">
+            {/* 工具调用列表（ToolRenderer 驱动，由 LLM tool_call 事件触发） */}
+            {toolStore.calls.map((call, i) => (
+              <ToolRenderer
+                key={`${call.toolName}-${call.startedAt}`}
+                state={call}
+                onOpenSearch={() => setSearchPanelOpen(true)}
+                className="mb-2"
+              />
+            ))}
+
             <div className="mx-auto max-w-2xl space-y-6">
               {messages.map((msg) => (
                 <div
@@ -160,7 +220,7 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
         <div
           className={cn(
             'px-4 pb-6',
-            messages.length === 0 ? '' : 'border-t pt-4',
+            messages.length === 0 ? '' : 'pt-4',
           )}
         >
           <div className={cn('mx-auto max-w-xl', classNames?.input)}>
@@ -174,9 +234,18 @@ const ChatPage = forwardRef<HTMLDivElement, ChatPageProps>(
               model={model}
               models={models}
               onModelSelect={setModel}
+              webSearchEnabled={webSearchEnabled}
+              onWebSearchToggle={() => conversationStore.toggleWebSearch()}
             />
           </div>
         </div>
+
+        {/* 搜索结果侧边栏 */}
+        <SearchResultPanel
+          results={webSearchResults}
+          open={searchPanelOpen}
+          onClose={() => setSearchPanelOpen(false)}
+        />
       </div>
     )
   },

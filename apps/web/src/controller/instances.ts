@@ -13,6 +13,7 @@ import ShareStore from './stores/share'
 import StorageStore from './stores/storage'
 import VoiceStore from './stores/voice'
 import AuthStore from './stores/auth'
+import ToolStore from './stores/tool'
 
 /** 本地存储管理实例 */
 export const localStorageStore = new StorageStore()
@@ -25,6 +26,9 @@ export const authStore = new AuthStore()
 
 /** 对话消息管理实例 */
 export const conversationStore = new ConversationStore()
+
+/** 工具调用状态管理实例 */
+export const toolStore = new ToolStore()
 
 /** Claw 独立状态管理实例 */
 export const clawStore = new ClawStore()

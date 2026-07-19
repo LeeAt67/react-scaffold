@@ -20,6 +20,25 @@ export type Message = z.infer<typeof messageSchema>
  */
 export type StreamCallback = (token: string, done: boolean) => void
 
+/** 联网搜索结果 */
+export interface WebSearchResult {
+  datePublished?: string
+  url?: string
+  name?: string
+  siteName?: string
+  snippet?: string
+  siteIcon?: string
+}
+
+/** LLM 工具调用事件回调 */
+export type ToolCallback = (name: string, args: unknown) => void
+
+/** LLM 工具进展事件回调 */
+export type ToolProgressCallback = (name: string, message: string) => void
+
+/** LLM 工具结果事件回调 */
+export type ToolResultCallback = (name: string, result: unknown) => void
+
 /** 模型配置 — 收敛到一个对象里 */
 export interface ModelConfig {
   model?: string
@@ -38,6 +57,14 @@ export interface ChatStreamOptions {
   multiMedias?: unknown[]
   /** 用于取消请求的 AbortSignal */
   signal?: AbortSignal
+  /** LLM 工具调用回调 */
+  onToolCall?: ToolCallback
+  /** LLM 工具进展回调 */
+  onToolProgress?: ToolProgressCallback
+  /** LLM 工具结果回调 */
+  onToolResult?: ToolResultCallback
+  /** 历史消息（不含当前查询），作为上下文传给 LLM */
+  history?: Array<{ role: 'user' | 'assistant'; content: string }>
 }
 
 /** SSE 事件中解析出的 payload，对齐格式 */
@@ -84,6 +111,7 @@ export const streamChatMessage = async (
     system: options.system,
     modelConfig: options.modelConfig ?? {},
     multiMedias: options.multiMedias ?? [],
+    history: options.history ?? [],
   }, options.signal)
 
   if (err) {
@@ -100,7 +128,7 @@ export const streamChatMessage = async (
 
   // ③ 生产者-消费者模型
   //
-  // 参考 mimo-chat sse.ts 的架构：
+  // 参考   -chat sse.ts 的架构：
   // - readLoop 全速消费 SSE，message token 累积到 cachedContent
   // - scheduleRafFlush 保证每帧最多产出一次内容更新（对齐浏览器渲染帧）
   // - 控制事件（finish/error/usage）立即入队，通过 notify() 唤醒消费端
@@ -197,6 +225,38 @@ export const streamChatMessage = async (
               // 累积 token，交由 RAF 聚合后产出，每帧最多触发一次重渲染
               cachedContent += parsed.content
               scheduleRafFlush()
+            }
+          } catch { /* skip */ }
+        }
+
+        // 处理 LLM tool_call 事件（LLM 自主决定调用工具）
+        if (eventType === 'tool_call') {
+          flushCache()
+          try {
+            const parsed = JSON.parse(value.data) as { name?: string; arguments?: unknown }
+            if (parsed.name) {
+              options.onToolCall?.(parsed.name, parsed.arguments)
+            }
+          } catch { /* skip */ }
+        }
+
+        // 处理 LLM tool_progress 事件（工具执行进度，如"搜索中…"）
+        if (eventType === 'tool_progress') {
+          try {
+            const parsed = JSON.parse(value.data) as { name?: string; message?: string }
+            if (parsed.name && parsed.message) {
+              options.onToolProgress?.(parsed.name, parsed.message)
+            }
+          } catch { /* skip */ }
+        }
+
+        // 处理 LLM tool_result 事件（工具执行完成后回传结果）
+        if (eventType === 'tool_result') {
+          flushCache()
+          try {
+            const parsed = JSON.parse(value.data) as { name?: string; result?: unknown }
+            if (parsed.name) {
+              options.onToolResult?.(parsed.name, parsed.result)
             }
           } catch { /* skip */ }
         }

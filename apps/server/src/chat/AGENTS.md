@@ -9,7 +9,7 @@
 
 **SSE 流式代理**：前端请求 → Zod 校验 → `fetch` LLM API (stream: true) → `AsyncGenerator` 逐 token 产出 → Express `res.write()` SSE 输出。
 
-核心价值：**前端不需要知道下游 LLM 的格式**（OpenAI 还是 Mimo 无所谓），统一消费 `{ token, done, error }` 格式。
+核心价值：**前端不需要知道下游 LLM 的格式**（OpenAI 还是    无所谓），统一消费 `{ token, done, error }` 格式。
 
 ## 核心概念
 
@@ -28,22 +28,38 @@
 
 | 文件 | 职责 |
 |------|------|
-| `chat.module.ts` | 注册 Controller + Service |
+| `chat.module.ts` | 注册 Controller + Service + WebSearchService |
 | `chat.controller.ts` | Zod 校验 → SSE 响应头 → `for await` 消费 Service 流 → `res.write()` |
-| `chat.service.ts` | `fetch(LLM_API_URL)` → 管道解析 → `yield { token/done/error }` |
+| `chat.service.ts` | `fetch(LLM_API_URL)` → 管道解析 → `yield { text/done/error }`；联网搜索时先调用 WebSearchService |
+| `web-search.service.ts` | 封装搜索引擎 API（Tavily 兼容），环境变量 `SEARCH_API_URL` / `SEARCH_API_KEY` 配置 |
 
 ## 数据流
 
 ```
-POST /api/chat { query, modelConfig: { model, maxTokens, temperature... } }
+POST /api/chat { query, modelConfig: { model, maxTokens, webSearchStatus... } }
   → Zod 校验 (chatRequestSchema)
+  → [如果 webSearchStatus=disabled] 直接调用 LLM
+  → [如果 webSearchStatus=enabled]
+    → yield { type: 'processStart', content: 'webSearch' }  ← SSE event: doc
+    → webSearchService.search(query)  ← 调用 SEARCH_API_URL
+    → yield { type: 'webSearch', results: [...] }            ← SSE event: web_search
+    → 搜索结果注入 system prompt
   → fetch(LLM_API_URL, { body: { model, messages, stream: true } })
     → LLM 返回 data: {"choices":[{"delta":{"content":"xx"}}]}
       → TextDecoderStream → 逐行解析
-        → yield { token: "xx" }
-        → yield { done: true } (收到 [DONE])
+        → yield { type: 'text', content: "xx" }
+        → yield { type: 'done' } (收到 [DONE])
   → Controller for await → res.write(`data: {json}\n\n`)
 ```
+
+## 联网搜索（Web Search）
+
+- **触发条件**：前端传 `modelConfig.webSearchStatus: 'enabled'`
+- **配置方式**：环境变量 `SEARCH_API_URL` + `SEARCH_API_KEY`（Tavily 兼容格式）
+- **降级策略**：环境变量未配置时，`webSearchService.available === false`，自动跳过搜索
+- **SSE 事件**：
+  - `event: doc, data: { content: 'webSearch' }` — 开始联网检索
+  - `event: web_search, data: [...]` — 搜索结果列表（`WebSearchResult[]`）
 
 ## 模型配置收敛
 
