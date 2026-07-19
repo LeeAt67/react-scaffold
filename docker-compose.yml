@@ -15,8 +15,12 @@ services:
     ports:
       - '3001:3001'
       - '8081:3001'
+    env_file:
+      - ./apps/server/.env
     environment:
       - PORT=3001
+      # Docker 内 livekit 通过服务名访问；浏览器仍在宿主机用 localhost:7880
+      - LIVEKIT_WS_URL=ws://localhost:7880
 
   # 本地代码执行沙箱
   sandbox:
@@ -29,18 +33,17 @@ services:
     restart: unless-stopped
 
   # LiveKit WebRTC SFU 服务器 — 语音/视频通话信令与媒体转发
+  # 注意：需要先 docker compose up livekit -d 启动，否则报 127.0.0.1:7880 拒绝连接
   livekit:
     image: livekit/livekit-server:latest
     ports:
       - '7880:7880'     # WebSocket 信令
       - '7881:7881'     # gRPC
       - '7882:7882'     # HTTP
-      - '50000-60000:50000-60000'  # WebRTC 媒体端口
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml
     command: --config /etc/livekit.yaml --node-ip=127.0.0.1
     restart: unless-stopped
-    network_mode: host
 
 volumes:
   sandbox_data:
