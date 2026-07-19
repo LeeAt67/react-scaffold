@@ -33,10 +33,8 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# 从构建阶段复制 dist
+# 从构建阶段复制 dist（含已编译的 Prisma Client）
 COPY --from=builder /app/apps/server/dist /app/dist
-# 从构建阶段复制 prisma（含生成的 client）
-COPY --from=builder /app/apps/server/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=builder /app/apps/server/prisma /app/prisma
 COPY --from=builder /app/apps/server/prisma.config.ts /app/
 COPY --from=builder /app/apps/server/package.json /app/
